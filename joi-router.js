@@ -19,9 +19,16 @@ module.exports = Router;
 // expose Joi for use in applications
 Router.Joi = Joi;
 
-function Router() {
+function Router(opts) {
   if (!(this instanceof Router)) {
-    return new Router();
+    return new Router(opts);
+  }
+
+  this.opts = opts || {};
+
+  if (this.opts.errorResponseHandler &&
+      typeof this.opts.errorResponseHandler === 'function') {
+    this.errorResponseHandler = this.opts.errorResponseHandler;
   }
 
   this.routes = [];
@@ -114,18 +121,24 @@ Router.prototype._addRoute = function addRoute(spec) {
 
   debug('add %s "%s"', spec.method, spec.path);
 
-  const bodyParser = makeBodyParser(spec);
+  const bodyParser = makeBodyParser(spec, this.errorResponseHandler);
   const specExposer = makeSpecExposer(spec);
-  const validator = makeValidator(spec);
+  const validator = makeValidator(spec, this.errorResponseHandler);
   const handlers = flatten(spec.handler);
 
-  const args = [
+  let args = [
     spec.path,
     prepareRequest,
     specExposer,
     bodyParser,
     validator
-  ].concat(handlers);
+  ];
+
+  if (this.errorResponseHandler) {
+    args.push(this.errorResponseHandler);
+  }
+
+  args = args.concat(handlers);
 
   const router = this.router;
 
@@ -240,11 +253,12 @@ function checkValidators(spec) {
  * Creates body parser middleware.
  *
  * @param {Object} spec
+ * @param {async function} errorResponseHandler
  * @return {async function}
  * @api private
  */
 
-function makeBodyParser(spec) {
+function makeBodyParser(spec, errorResponseHandler) {
   return async function parsePayload(ctx, next) {
     if (!(spec.validate && spec.validate.type)) return await next();
 
@@ -293,7 +307,9 @@ function makeBodyParser(spec) {
           break;
       }
     } catch (err) {
-      if (!spec.validate.continueOnError) return ctx.throw(err);
+      if (!errorResponseHandler) {
+        return ctx.throw(err);
+      }
       captureError(ctx, 'type', err);
     }
 
@@ -316,11 +332,12 @@ function captureError(ctx, type, err) {
  * Creates validator middleware.
  *
  * @param {Object} spec
+ * @param {async function} errorResponseHandler
  * @return {async function}
  * @api private
  */
 
-function makeValidator(spec) {
+function makeValidator(spec, errorResponseHandler) {
   const props = 'header query params body'.split(' ');
 
   return async function validator(ctx, next) {
@@ -335,7 +352,9 @@ function makeValidator(spec) {
         err = validateInput(prop, ctx, spec.validate);
 
         if (err) {
-          if (!spec.validate.continueOnError) return ctx.throw(err);
+          if (!errorResponseHandler) {
+            return ctx.throw(err);
+          }
           captureError(ctx, prop, err);
         }
       }
