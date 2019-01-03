@@ -30,6 +30,7 @@ function Router(opts) {
       typeof this.opts.errorResponseHandler === 'function') {
     this.errorResponseHandler = this.opts.errorResponseHandler;
   }
+  this.joiOptions = this.opts.joiOptions || { abortEarly: false };
 
   this.routes = [];
   this.router = new KoaRouter();
@@ -123,7 +124,7 @@ Router.prototype._addRoute = function addRoute(spec) {
 
   const bodyParser = makeBodyParser(spec, this.errorResponseHandler);
   const specExposer = makeSpecExposer(spec);
-  const validator = makeValidator(spec, this.errorResponseHandler);
+  const validator = makeValidator(spec, this.errorResponseHandler, this.joiOptions);
   const handlers = flatten(spec.handler);
 
   let args = [
@@ -333,11 +334,12 @@ function captureError(ctx, type, err) {
  *
  * @param {Object} spec
  * @param {async function} errorResponseHandler
+ * @param {Object} joiOptions
  * @return {async function}
  * @api private
  */
 
-function makeValidator(spec, errorResponseHandler) {
+function makeValidator(spec, errorResponseHandler, joiOptions) {
   const props = 'header query params body'.split(' ');
 
   return async function validator(ctx, next) {
@@ -349,7 +351,7 @@ function makeValidator(spec, errorResponseHandler) {
       const prop = props[i];
 
       if (spec.validate[prop]) {
-        err = validateInput(prop, ctx, spec.validate);
+        err = validateInput(prop, ctx, spec.validate, joiOptions);
 
         if (err) {
           if (!errorResponseHandler) {
@@ -406,15 +408,16 @@ async function prepareRequest(ctx, next) {
  * @param {String} prop
  * @param {koa.Request} request
  * @param {Object} validate
+ * @param {Object} joiOptions
  * @returns {Error|undefined}
  * @api private
  */
 
-function validateInput(prop, ctx, validate) {
+function validateInput(prop, ctx, validate, joiOptions) {
   debug('validating %s', prop);
 
   const request = ctx.request;
-  const res = Joi.validate(request[prop], validate[prop]);
+  const res = Joi.validate(request[prop], validate[prop], joiOptions);
 
   if (res.error) {
     res.error.status = validate.failure;

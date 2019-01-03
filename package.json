@@ -1,6 +1,6 @@
 {
   "name": "@vg-niche-and-growth/koa-joi-router",
-  "version": "5.1.2",
+  "version": "5.1.3",
   "description": "Configurable, input validated routing for koa.",
   "main": "joi-router.js",
   "keywords": [
