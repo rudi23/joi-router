@@ -26,8 +26,7 @@ function Router(opts) {
 
   this.opts = opts || {};
 
-  this.opts.validateOutput =
-      this.opts.validateOutput !== undefined ? this.opts.validateOutput : true;
+  this.validateOutput = this.opts.validateOutput !== undefined ? this.opts.validateOutput : true;
   if (this.opts.errorResponseHandler &&
       typeof this.opts.errorResponseHandler === 'function') {
     this.errorResponseHandler = this.opts.errorResponseHandler;
@@ -126,18 +125,16 @@ Router.prototype._addRoute = function addRoute(spec) {
 
   const bodyParser = makeBodyParser(spec, this.errorResponseHandler);
   const specExposer = makeSpecExposer(spec);
-  const validator = makeValidator(spec, this.errorResponseHandler, this.joiOptions);
+  const validator = makeValidator(spec, this.errorResponseHandler, this.joiOptions, this.validateOutput);
   const preHandlers = spec.pre ? flatten(spec.pre) : [];
   const handlers = flatten(spec.handler);
 
-  let args = [
-    spec.path,
-    preHandlers,
+  let args = [spec.path].concat(preHandlers).concat([
     prepareRequest,
     specExposer,
     bodyParser,
     validator
-  ];
+  ]);
 
   if (this.errorResponseHandler) {
     args.push(this.errorResponseHandler);
@@ -357,11 +354,12 @@ function captureError(ctx, type, err) {
  * @param {Object} spec
  * @param {async function} errorResponseHandler
  * @param {Object} joiOptions
+ * @param {boolean} validateOutput
  * @return {async function}
  * @api private
  */
 
-function makeValidator(spec, errorResponseHandler, joiOptions) {
+function makeValidator(spec, errorResponseHandler, joiOptions, validateOutput) {
   const props = 'header query params body'.split(' ');
 
   return async function validator(ctx, next) {
@@ -391,7 +389,7 @@ function makeValidator(spec, errorResponseHandler, joiOptions) {
       debug('validating output');
 
       err = spec.validate._outputValidator.validate(ctx);
-      if (err && this.opts.validateOutput) {
+      if (err && validateOutput) {
         err.status = 500;
         return ctx.throw(err);
       } else if (err) {
