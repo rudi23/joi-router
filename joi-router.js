@@ -26,6 +26,8 @@ function Router(opts) {
 
   this.opts = opts || {};
 
+  this.opts.validateOutput =
+      this.opts.validateOutput !== undefined ? this.opts.validateOutput : true;
   if (this.opts.errorResponseHandler &&
       typeof this.opts.errorResponseHandler === 'function') {
     this.errorResponseHandler = this.opts.errorResponseHandler;
@@ -389,9 +391,12 @@ function makeValidator(spec, errorResponseHandler, joiOptions) {
       debug('validating output');
 
       err = spec.validate._outputValidator.validate(ctx);
-      if (err) {
+      if (err && this.opts.validateOutput) {
         err.status = 500;
         return ctx.throw(err);
+      } else if (err) {
+        ctx.state = ctx.state || {};
+        ctx.state.outputValidationError = err;
       }
     }
   };
