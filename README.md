@@ -157,6 +157,10 @@ public.route({
     failure: 400,
     continueOnError: false
   },
+  pre: async (ctx, next) => {
+    await checkAuth(ctx);
+    return next();
+  },
   handler: async (ctx) => {
     await createUser(ctx.request.body);
     ctx.status = 201;
@@ -199,9 +203,15 @@ public.route(routes);
   - `maxBody`: max incoming body size for forms or json input
   - `failure`: HTTP response code to use when input validation fails. default `400`
   - `type`: if validating the request body, this is **required**. either `form`, `json` or `multipart`
+  - `formOptions`: options for co-body form parsing when `type: 'form'`
+  - `jsonOptions`: options for co-body json parsing when `type: 'json'`
+  - `multipartOptions`: options for [busboy][] parsing when `type: 'multipart'`
+     - [any busboy constructor option][busboy]. eg `{ limits: { files: 1 }}`
+     - `autoFields`: Determines whether form fields should be auto-parsed (default: `true`). See the [await-busboy docs](https://github.com/aheckmann/await-busboy#parts--parsestream-options).
   - `output`: see [output validation](#validating-output)
   - `continueOnError`: if validation fails, this flags determines if `koa-joi-router` should [continue processing](#handling-errors) the middleware stack or stop and respond with an error immediately. useful when you want your route to handle the error response. default `false`
 - `handler`: **required** async function or function
+- `pre`: async function or function, will be called before parser and validators
 - `meta`: meta data about this route. `koa-joi-router` ignores this but stores it along with all other route data
 
 ### .get(),post(),put(),delete() etc - HTTP methods
@@ -222,39 +232,14 @@ admin.delete('/thing', config, middleware, handler);
 ```
 
 ### .use()
-
-When you need to run middleware before all routes, OR, if you just need to run
-middleware before a specific path, this method is for you.
-
-```js
-const router = require('koa-joi-router');
-const users = router();
-
-users.get('/something', async (ctx, next) => {
-  console.log('this logs before your /something handlers');
-  await next();
-  console.log('this logs after your /something handlers');
-});
-
-users.use(async (ctx, next) => {
-  console.log('this logs before all other handlers');
-  await next();
-  console.log('this logs after all other handlers');
-});
-```
-
-It doesn't matter if you define your routes before or after you call `.use()`,
-the middleware passed to `.use()` will run before your routes and only when
-the path matches.
-
-To run middleware before a specific route, also pass the optional `path`:
+Middleware run in the order they are defined by .use()(or .get(), etc.) They are invoked sequentially, requests start at the first middleware and work their way "down" the middleware stack which matches Express 4 API.
 
 ```js
 const router = require('koa-joi-router');
 const users = router();
 
 users.get('/:id', handler);
-users.use('/:id', runThisBeforeHandler);
+users.use('/:id', runThisAfterHandler);
 ```
 
 ### .prefix()
@@ -702,3 +687,4 @@ admin.route({
 
 [MIT](https://github.com/koajs/joi-router/blob/master/LICENSE)
 
+[busboy]: https://github.com/mscdex/busboy#busboy-methods

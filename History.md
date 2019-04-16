@@ -1,4 +1,21 @@
 
+5.3.0 / 2019-03-04
+==================
+
+  * deps; bump await-busboy, koa-router, clone, co-body, debug
+  * docs; update description of .use() API by wdanxna
+  * tests; fix head response body check
+
+5.2.0 / 2019-01-12
+==================
+
+ * added; pre-handler support #66 by swarthy 
+ * added; allow form and json parsing options to be configured #75 by nojacko
+ * fixed; always fill ctx.invalid even when continueOnError is false #70 by alvarowolfx
+ * fixed; do not parse the body if already present #76 by oprogramador
+ * deps; update joi to 14.0.6 #77 by pke
+ * docs; parsing options #75 by nojacko
+
 5.1.0 / 2018-01-02
 ==================
 
