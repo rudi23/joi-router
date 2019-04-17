@@ -123,9 +123,13 @@ Router.prototype._addRoute = function addRoute(spec) {
 
   debug('add %s "%s"', spec.method, spec.path);
 
-  const bodyParser = makeBodyParser(spec, this.errorResponseHandler);
+  if (this.errorResponseHandler && spec.validate) {
+    spec.validate.continueOnError = false;
+  }
+
+  const bodyParser = makeBodyParser(spec);
   const specExposer = makeSpecExposer(spec);
-  const validator = makeValidator(spec, this.errorResponseHandler, this.joiOptions, this.validateOutput);
+  const validator = makeValidator(spec, this.joiOptions, this.validateOutput);
   const preHandlers = spec.pre ? flatten(spec.pre) : [];
   const handlers = flatten(spec.handler);
 
@@ -272,12 +276,11 @@ function checkValidators(spec) {
  * Creates body parser middleware.
  *
  * @param {Object} spec
- * @param {async function} errorResponseHandler
  * @return {async function}
  * @api private
  */
 
-function makeBodyParser(spec, errorResponseHandler) {
+function makeBodyParser(spec) {
   return async function parsePayload(ctx, next) {
     if (!(spec.validate && spec.validate.type)) return await next();
 
@@ -326,9 +329,6 @@ function makeBodyParser(spec, errorResponseHandler) {
           break;
       }
     } catch (err) {
-      if (!errorResponseHandler) {
-        return ctx.throw(err);
-      }
       captureError(ctx, 'type', err);
       if (!spec.validate.continueOnError) return ctx.throw(err);
     }
@@ -352,14 +352,13 @@ function captureError(ctx, type, err) {
  * Creates validator middleware.
  *
  * @param {Object} spec
- * @param {async function} errorResponseHandler
  * @param {Object} joiOptions
  * @param {boolean} validateOutput
  * @return {async function}
  * @api private
  */
 
-function makeValidator(spec, errorResponseHandler, joiOptions, validateOutput) {
+function makeValidator(spec, joiOptions, validateOutput) {
   const props = 'header query params body'.split(' ');
 
   return async function validator(ctx, next) {
@@ -374,9 +373,6 @@ function makeValidator(spec, errorResponseHandler, joiOptions, validateOutput) {
         err = validateInput(prop, ctx, spec.validate, joiOptions);
 
         if (err) {
-          if (!errorResponseHandler) {
-            return ctx.throw(err);
-          }
           captureError(ctx, prop, err);
           if (!spec.validate.continueOnError) return ctx.throw(err);
         }
