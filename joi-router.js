@@ -124,7 +124,7 @@ Router.prototype._addRoute = function addRoute(spec) {
   debug('add %s "%s"', spec.method, spec.path);
 
   if (this.errorResponseHandler && spec.validate) {
-    spec.validate.continueOnError = false;
+    spec.validate.continueOnError = true;
   }
 
   const bodyParser = makeBodyParser(spec);
