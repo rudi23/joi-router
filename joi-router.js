@@ -8,7 +8,7 @@ const methods = require('methods');
 const KoaRouter = require('koa-router');
 const busboy = require('await-busboy');
 const parse = require('co-body');
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 const slice = require('sliced');
 const delegate = require('delegates');
 const clone = require('clone');
@@ -31,7 +31,6 @@ function Router(opts) {
       typeof this.opts.errorResponseHandler === 'function') {
     this.errorResponseHandler = this.opts.errorResponseHandler;
   }
-  this.joiOptions = this.opts.joiOptions || { abortEarly: false };
 
   this.routes = [];
   this.router = new KoaRouter();
@@ -129,7 +128,7 @@ Router.prototype._addRoute = function addRoute(spec) {
 
   const bodyParser = makeBodyParser(spec);
   const specExposer = makeSpecExposer(spec);
-  const validator = makeValidator(spec, this.joiOptions, this.validateOutput);
+  const validator = makeValidator(spec, this.validateOutput);
   const preHandlers = spec.pre ? flatten(spec.pre) : [];
   const handlers = flatten(spec.handler);
 
@@ -352,13 +351,12 @@ function captureError(ctx, type, err) {
  * Creates validator middleware.
  *
  * @param {Object} spec
- * @param {Object} joiOptions
  * @param {boolean} validateOutput
  * @return {async function}
  * @api private
  */
 
-function makeValidator(spec, joiOptions, validateOutput) {
+function makeValidator(spec, validateOutput) {
   const props = 'header query params body'.split(' ');
 
   return async function validator(ctx, next) {
@@ -370,7 +368,7 @@ function makeValidator(spec, joiOptions, validateOutput) {
       const prop = props[i];
 
       if (spec.validate[prop]) {
-        err = validateInput(prop, ctx, spec.validate, joiOptions);
+        err = validateInput(prop, ctx, spec.validate);
 
         if (err) {
           captureError(ctx, prop, err);
@@ -428,16 +426,21 @@ async function prepareRequest(ctx, next) {
  * @param {String} prop
  * @param {koa.Request} request
  * @param {Object} validate
- * @param {Object} joiOptions
  * @returns {Error|undefined}
  * @api private
  */
 
-function validateInput(prop, ctx, validate, joiOptions) {
+function validateInput(prop, ctx, validate) {
   debug('validating %s', prop);
 
   const request = ctx.request;
-  const res = Joi.validate(request[prop], validate[prop], joiOptions);
+
+  let schema = validate[prop];
+  if (!Joi.isSchema(schema)) {
+    schema = Joi.object(schema);
+  }
+
+  const res = schema.validate(request[prop]);
 
   if (res.error) {
     res.error.status = validate.failure;

@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 const helpMsg = ' -> see: https://github.com/koajs/joi-router/#validating-output';
 
 module.exports = OutputValidationRule;
@@ -70,14 +70,24 @@ OutputValidationRule.prototype.validateOutput = function validateOutput(ctx) {
   let result;
 
   if (this.spec.headers) {
-    result = Joi.validate(ctx.response.headers, this.spec.headers);
+    let schema = this.spec.headers;
+    if (!Joi.isSchema(schema)) {
+      schema = Joi.object(schema);
+    }
+
+    result = schema.validate(ctx.response.headers);
     if (result.error) return result.error;
     // use casted values
     ctx.set(result.value);
   }
 
   if (this.spec.body) {
-    result = Joi.validate(ctx.body, this.spec.body);
+    let schema = this.spec.body;
+    if (!Joi.isSchema(schema)) {
+      schema = Joi.object(schema);
+    }
+
+    result = schema.validate(ctx.body);
     if (result.error) return result.error;
     // use casted values
     ctx.body = result.value;

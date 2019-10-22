@@ -1,6 +1,6 @@
 {
   "name": "@vg-niche-and-growth/koa-joi-router",
-  "version": "5.3.5",
+  "version": "5.4.0",
   "description": "Configurable, input validated routing for koa.",
   "main": "joi-router.js",
   "keywords": [
@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/koajs/joi-router",
   "dependencies": {
+    "@hapi/joi": "^16.1.7",
     "await-busboy": "1.0.3",
     "clone": "2.1.2",
     "co-body": "6.0.0",
@@ -40,7 +41,6 @@
     "delegates": "1.0.0",
     "flatten": "1.0.2",
     "is-gen-fn": "0.0.1",
-    "joi": "14.3.1",
     "koa-router": "7.4.0",
     "methods": "1.1.2",
     "sliced": "1.0.1"
