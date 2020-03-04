@@ -1,3 +1,15 @@
+6.0.1 / 2019-12-07
+==================
+
+- bump deps
+
+6.0.0 / 2019-04-27
+==================
+
+  * deps; [semver-major] bump @hapi/joi from 14.x -> 15.x
+  * deps; bump eslint, supertest and switch from istanbul to nyc
+  * lint; lint all JS #65, switch from pebble to eslint:recommended, remove eslint-plugin-standard
+  * refactored; makeBodyParser #86 by swarthy
 
 5.3.0 / 2019-03-04
 ==================

@@ -1,6 +1,6 @@
 {
   "name": "@vg-niche-and-growth/koa-joi-router",
-  "version": "5.3.5",
+  "version": "6.0.2",
   "description": "Configurable, input validated routing for koa.",
   "main": "joi-router.js",
   "keywords": [
@@ -13,9 +13,9 @@
   ],
   "scripts": {
     "test": "npm run test-cov && npm run lint",
-    "lint": "NODE_ENV=test ./node_modules/eslint/bin/eslint.js test/ --quiet",
-    "lint-fix": "NODE_ENV=test ./node_modules/eslint/bin/eslint.js test/ --quiet --fix",
-    "test-cov": "NODE_ENV=test istanbul cover _mocha -- --reporter spec --bail",
+    "lint": "NODE_ENV=test eslint ./*.js",
+    "lint-fix": "NODE_ENV=test eslint ./*.js --fix",
+    "test-cov": "NODE_ENV=test nyc mocha -- --reporter spec --bail",
     "open-cov": "open coverage/lcov-report/index.html",
     "test-only": "NODE_ENV=test mocha --reporter spec --bail"
   },
@@ -33,33 +33,34 @@
   },
   "homepage": "https://github.com/koajs/joi-router",
   "dependencies": {
+    "@hapi/joi": "15.1.1",
     "await-busboy": "1.0.3",
     "clone": "2.1.2",
     "co-body": "6.0.0",
     "debug": "4.1.1",
     "delegates": "1.0.0",
-    "flatten": "1.0.2",
+    "flatten": "1.0.3",
     "is-gen-fn": "0.0.1",
-    "joi": "14.3.1",
-    "koa-router": "7.4.0",
+    "@koa/router": "8.0.2",
     "methods": "1.1.2",
     "sliced": "1.0.1"
   },
   "devDependencies": {
-    "eslint": "^3.17.1",
-    "eslint-config-pebble": "^4.0.0",
-    "eslint-plugin-standard": "^2.0.0",
-    "istanbul": "1.1.0-alpha.1",
-    "koa": "^2.1",
-    "mocha": "^6.1.3",
-    "supertest": "^4.0.2"
+    "eslint": "^6.7.2",
+    "koa": "^2.11.0",
+    "mocha": "^6.2.2",
+    "nyc": "^14.0.0",
+    "supertest": "^4"
   },
   "eslintConfig": {
     "extends": [
-      "pebble"
+      "eslint:recommended"
     ],
     "parserOptions": {
       "ecmaVersion": 2017
+    },
+    "env": {
+      "node": true
     }
   }
 }
