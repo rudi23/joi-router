@@ -62,7 +62,8 @@ describe('koa-joi-router', () => {
           assert.throws(() => {
             router().route({
               method: [],
-              handler: () => {}
+              handler: () => {
+              }
             });
           }, /invalid route path/);
           done();
@@ -72,7 +73,8 @@ describe('koa-joi-router', () => {
           assert.throws(() => {
             router().route({
               path: '/',
-              handler: () => {}
+              handler: () => {
+              }
             });
           }, /missing route method/);
 
@@ -80,7 +82,8 @@ describe('koa-joi-router', () => {
             router().route({
               path: '/',
               method: [],
-              handler: () => {}
+              handler: () => {
+              }
             });
           }, /missing route method/);
 
@@ -104,7 +107,8 @@ describe('koa-joi-router', () => {
           r.route({
             path: '/',
             method: 'get',
-            handler: () => {},
+            handler: () => {
+            },
             validate: {
               failure: 404
             }
@@ -129,7 +133,8 @@ describe('koa-joi-router', () => {
           ];
 
           const r = router();
-          const fn = () => {};
+          const fn = () => {
+          };
 
           tests.forEach((test) => {
             const method = test[1] === 0 ?
@@ -152,7 +157,8 @@ describe('koa-joi-router', () => {
       describe('path', () => {
         it('can be a string', (done) => {
           const r = router();
-          const fn = () => {};
+          const fn = () => {
+          };
 
           assert.doesNotThrow(() => {
             r.get('/', fn);
@@ -163,7 +169,7 @@ describe('koa-joi-router', () => {
       });
 
       describe('pre', () => {
-        it('should run before validators and handler', async () => {
+        it('should run before validators and handler', async() => {
           const r = router();
 
           r.route({
@@ -189,7 +195,7 @@ describe('koa-joi-router', () => {
 
           return test(makeRouterApp(r))
             .post('/')
-            .send({v: '42'})
+            .send({ v: '42' })
             .expect({ v: 42 });
         });
       });
@@ -245,7 +251,8 @@ describe('koa-joi-router', () => {
       r.route({
         method: 'put',
         path: '/asdf/:id',
-        handler: () => {}
+        handler: () => {
+        }
       });
 
       assert.equal(1, r.routes.length);
@@ -260,12 +267,14 @@ describe('koa-joi-router', () => {
         {
           method: 'put',
           path: '/asdf/:id',
-          handler: () => {}
+          handler: () => {
+          }
         },
         {
           method: 'get',
           path: '/asdf/:id',
-          handler: () => {}
+          handler: () => {
+          }
         }
       ]);
 
@@ -324,7 +333,7 @@ describe('koa-joi-router', () => {
       r.route({
         method: 'get',
         path: '/product/:id/:action',
-        handler: async (ctx) => {
+        handler: async(ctx) => {
           assert(typeof ctx.params === 'object' && ctx.params !== null,
             'missing params');
           assert.equal(4, ctx.params.id);
@@ -363,12 +372,12 @@ describe('koa-joi-router', () => {
             const app = new Koa();
             app.use(r.middleware());
             test(app).post('/')
-            .send({
-              last: 'Heckmann',
-              first: 'Aaron'
-            })
-            .expect(200)
-            .expect('Heckmann Aaron', done);
+              .send({
+                last: 'Heckmann',
+                first: 'Aaron'
+              })
+              .expect(200)
+              .expect('Heckmann Aaron', done);
           });
         });
 
@@ -391,12 +400,12 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .post('/')
-            .type('form')
-            .send({
-              name: 'Pebble'
-            })
-            .expect(400, done);
+              .post('/')
+              .type('form')
+              .send({
+                name: 'Pebble'
+              })
+              .expect(400, done);
           });
 
           describe('and validate.continueOnError is true', () => {
@@ -420,13 +429,13 @@ describe('koa-joi-router', () => {
               app.use(r.middleware());
 
               test(app)
-              .post('/')
-              .type('form')
-              .send({
-                name: 'Pebble'
-              })
-              .expect(200)
-              .expect('expected json', done);
+                .post('/')
+                .type('form')
+                .send({
+                  name: 'Pebble'
+                })
+                .expect(200)
+                .expect('expected json', done);
             });
           });
         });
@@ -454,10 +463,10 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .post('/')
-            .type('json')
-            .send(invalid)
-            .expect(400, done);
+              .post('/')
+              .type('json')
+              .send(invalid)
+              .expect(400, done);
           });
 
           describe('and validate.continueOnError is true', () => {
@@ -474,8 +483,8 @@ describe('koa-joi-router', () => {
                 handler: (ctx) => {
                   ctx.status = 200;
                   ctx.body = ctx.invalid &&
-                    ctx.invalid.type &&
-                    ctx.invalid.type.msg;
+                                        ctx.invalid.type &&
+                                        ctx.invalid.type.msg;
                 }
               });
 
@@ -483,11 +492,11 @@ describe('koa-joi-router', () => {
               app.use(r.middleware());
 
               test(app)
-              .post('/')
-              .type('json')
-              .send(invalid)
-              .expect(200)
-              .expect(/^Unexpected token \{/, done);
+                .post('/')
+                .type('json')
+                .send(invalid)
+                .expect(200)
+                .expect(/^Unexpected token \{/, done);
             });
           });
         });
@@ -515,15 +524,15 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .post('/')
-            .send({
-              last: 'Heckmann',
-              first: 'Aaron'
-            })
-            .type('form')
-            .expect(200)
-            .expect('Heckmann Aaron')
-            .end(done);
+              .post('/')
+              .send({
+                last: 'Heckmann',
+                first: 'Aaron'
+              })
+              .type('form')
+              .expect(200)
+              .expect('Heckmann Aaron')
+              .end(done);
           });
         });
 
@@ -546,13 +555,13 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .post('/')
-            .send({
-              last: 'heckmann',
-              first: 'aaron'
-            })
-            .type('json')
-            .expect(400, done);
+              .post('/')
+              .send({
+                last: 'heckmann',
+                first: 'aaron'
+              })
+              .type('json')
+              .expect(400, done);
           });
 
           describe('and validate.continueOnError is true', () => {
@@ -576,14 +585,14 @@ describe('koa-joi-router', () => {
               app.use(r.middleware());
 
               test(app)
-              .post('/')
-              .send({
-                last: 'Heckmann',
-                first: 'Aaron'
-              })
-              .type('json')
-              .expect(200)
-              .expect('expected x-www-form-urlencoded', done);
+                .post('/')
+                .send({
+                  last: 'Heckmann',
+                  first: 'Aaron'
+                })
+                .type('json')
+                .expect(200)
+                .expect('expected x-www-form-urlencoded', done);
             });
           });
         });
@@ -607,8 +616,8 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .post('/')
-            .expect(400, done);
+              .post('/')
+              .expect(400, done);
           });
 
           describe('and validate.continueOnError is true', () => {
@@ -632,9 +641,9 @@ describe('koa-joi-router', () => {
               app.use(r.middleware());
 
               test(app)
-              .post('/')
-              .expect(200)
-              .expect('expected x-www-form-urlencoded', done);
+                .post('/')
+                .expect(200)
+                .expect('expected x-www-form-urlencoded', done);
             });
           });
         });
@@ -665,9 +674,9 @@ describe('koa-joi-router', () => {
           b.fill('a');
 
           test(app)
-          .put('/')
-          .attach('file1', b)
-          .expect(200, done);
+            .put('/')
+            .attach('file1', b)
+            .expect(200, done);
         });
       });
     });
@@ -683,7 +692,7 @@ describe('koa-joi-router', () => {
             r.route({
               method: 'put',
               path: '/',
-              handler: async (ctx) => {
+              handler: async(ctx) => {
                 let filename;
                 let part;
                 while ((part = await ctx.request.parts)) {
@@ -705,10 +714,10 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .put('/')
-            .attach('file1', `${__dirname}/fixtures/koa.png`)
-            .field('color', 'green')
-            .expect('{"color":"green","file":"koa.png"}', done);
+              .put('/')
+              .attach('file1', `${__dirname}/fixtures/koa.png`)
+              .field('color', 'green')
+              .expect('{"color":"green","file":"koa.png"}', done);
           });
         });
       });
@@ -735,9 +744,9 @@ describe('koa-joi-router', () => {
           b.fill('a');
 
           test(app)
-          .put('/')
-          .attach('file1', b)
-          .expect(200, done);
+            .put('/')
+            .attach('file1', b)
+            .expect(200, done);
         });
       });
     });
@@ -769,42 +778,42 @@ describe('koa-joi-router', () => {
 
         it('missing querystring', (done) => {
           test(app).get('/a')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('invalid q and invalid s', (done) => {
           test(app).get('/a?q=100&s=asdfhjkl')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('invalid q and valid s', (done) => {
           test(app).get('/a?q=4&s=asdfgh')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('valid q and invalid s', (done) => {
           test(app).get('/a?q=5&s=dfgh')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('valid q and valid s', (done) => {
           test(app).get('/a?q=5&s=as9fgh')
-          .end((err, res) => {
-            if (err) return done(err);
-            assert.equal(5, res.body.q);
-            assert.equal('as9fgh', res.body.s);
-            done(err);
-          });
+            .end((err, res) => {
+              if (err) return done(err);
+              assert.equal(5, res.body.q);
+              assert.equal('as9fgh', res.body.s);
+              done(err);
+            });
         });
 
         it('valid q and valid s + unspecified values', (done) => {
           test(app).get('/a?q=5&s=as9fgh&sort=10')
-          .end((err, res) => {
-            assert.equal(5, res.body.q);
-            assert.equal('as9fgh', res.body.s);
-            assert.equal(10, res.body.sort);
-            done(err);
-          });
+            .end((err, res) => {
+              assert.equal(5, res.body.q);
+              assert.equal('as9fgh', res.body.s);
+              assert.equal(10, res.body.sort);
+              done(err);
+            });
         });
       });
 
@@ -842,13 +851,13 @@ describe('koa-joi-router', () => {
         app.use(r.middleware());
 
         test(app).get('/a?d=7-27-2016&n=34&b=true')
-        .end((err, res) => {
-          assert.equal('object', res.body.date.type);
-          assert.equal(true, res.body.date.instance);
-          assert.equal('number', res.body.number.type);
-          assert.equal('boolean', res.body.bool.type);
-          done(err);
-        });
+          .end((err, res) => {
+            assert.equal('object', res.body.date.type);
+            assert.equal(true, res.body.date.instance);
+            assert.equal('number', res.body.number.type);
+            assert.equal('boolean', res.body.bool.type);
+            done(err);
+          });
       });
     });
 
@@ -875,17 +884,17 @@ describe('koa-joi-router', () => {
 
         it('with invalid first match', (done) => {
           test(app).get('/id/2-9')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('with invalid second match', (done) => {
           test(app).get('/id/7-1001')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('with valid matches', (done) => {
           test(app).get('/id/7-1000')
-          .expect(200, done);
+            .expect(200, done);
         });
       });
 
@@ -911,30 +920,30 @@ describe('koa-joi-router', () => {
 
         it('invalid quantity and invalid sku', (done) => {
           test(app).get('/a/as/asdfgh')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('invalid quantity and valid sku', (done) => {
           test(app).get('/a/4/asdfgh')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('valid quantity and invalid sku', (done) => {
           test(app).get('/a/5/dfgh')
-          .expect(400, done);
+            .expect(400, done);
         });
 
         it('valid quantity and valid sku', (done) => {
           test(app).get('/a/5/as9fgh')
-          .expect(200)
-          .expect('Content-Type', /json/)
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return done(err);
-            assert.equal(5, res.body.quantity);
-            assert.equal('as9fgh', res.body.sku);
-            done(err);
-          });
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .set('Accept', 'application/json')
+            .end((err, res) => {
+              if (err) return done(err);
+              assert.equal(5, res.body.quantity);
+              assert.equal('as9fgh', res.body.sku);
+              done(err);
+            });
         });
       });
 
@@ -977,22 +986,22 @@ describe('koa-joi-router', () => {
         app.use(r.middleware());
 
         test(app).get('/request/7-27-2016/34/true')
-        .end((err, res) => {
-          if (err) return done(err);
-          assert.equal('object', res.body.date.type);
-          assert.equal(true, res.body.date.instance);
-          assert.equal('number', res.body.number.type);
-          assert.equal('boolean', res.body.bool.type);
-
-          test(app).get('/params/7-27-2016/34/true')
           .end((err, res) => {
+            if (err) return done(err);
             assert.equal('object', res.body.date.type);
             assert.equal(true, res.body.date.instance);
             assert.equal('number', res.body.number.type);
             assert.equal('boolean', res.body.bool.type);
-            done(err);
+
+            test(app).get('/params/7-27-2016/34/true')
+              .end((err, res) => {
+                assert.equal('object', res.body.date.type);
+                assert.equal(true, res.body.date.instance);
+                assert.equal('number', res.body.number.type);
+                assert.equal('boolean', res.body.bool.type);
+                done(err);
+              });
           });
-        });
       });
     });
 
@@ -1003,9 +1012,8 @@ describe('koa-joi-router', () => {
         method: 'post',
         path: '/a/b',
         validate: {
-          header:
-            Joi.object({ 'x-for-fun': Joi.number().min(5).max(8).required() })
-              .options({ allowUnknown: true })
+          header: Joi.object({ 'x-for-fun': Joi.number().min(5).max(8).required() })
+            .options({ allowUnknown: true })
         },
         handler: (ctx) => {
           ctx.status = 204;
@@ -1054,7 +1062,8 @@ describe('koa-joi-router', () => {
                   r.route({
                     method: 'post',
                     path: '/',
-                    handler: () => {},
+                    handler: () => {
+                    },
                     validate: {
                       body: Joi.object({ name: Joi.string() }),
                       type: name
@@ -1076,7 +1085,8 @@ describe('koa-joi-router', () => {
               r.route({
                 method: 'post',
                 path: '/',
-                handler: () => {},
+                handler: () => {
+                },
                 validate: {
                   body: Joi.object({ name: Joi.string() })
                 }
@@ -1115,45 +1125,45 @@ describe('koa-joi-router', () => {
 
         it('invalid number and valid string', (done) => {
           test(app).post('/a/b')
-          .send({
-            quantity: 4,
-            sku: 'x'
-          })
-          .expect(400, done);
+            .send({
+              quantity: 4,
+              sku: 'x'
+            })
+            .expect(400, done);
         });
 
         it('valid number and invalid string', (done) => {
           test(app).post('/a/b')
-          .send({
-            quantity: 6,
-            sku: { x: 'test' }
-          })
-          .expect(400, done);
+            .send({
+              quantity: 6,
+              sku: { x: 'test' }
+            })
+            .expect(400, done);
         });
 
         it('valid number and missing non-required string', (done) => {
           test(app).post('/a/b')
-          .send({ quantity: 6 })
-          .expect(200, done);
+            .send({ quantity: 6 })
+            .expect(200, done);
         });
 
         it('valid values', (done) => {
           test(app).post('/a/b')
-          .send({
-            quantity: 6,
-            sku: 'x'
-          })
-          .expect(200, done);
+            .send({
+              quantity: 6,
+              sku: 'x'
+            })
+            .expect(200, done);
         });
 
         it('valid values + unspecified values', (done) => {
           test(app).post('/a/b')
-          .send({
-            quantity: 6,
-            sku: 'x',
-            a: 1
-          })
-          .expect(400, done);
+            .send({
+              quantity: 6,
+              sku: 'x',
+              a: 1
+            })
+            .expect(400, done);
         });
       });
 
@@ -1182,10 +1192,10 @@ describe('koa-joi-router', () => {
             app.use(r.middleware());
 
             test(app)
-            .post('/')
-            .send({ name: 'Pebble' })
-            .expect(200)
-            .expect('true', done);
+              .post('/')
+              .send({ name: 'Pebble' })
+              .expect(200)
+              .expect('true', done);
           });
         });
 
@@ -1217,8 +1227,8 @@ describe('koa-joi-router', () => {
           b.fill('a');
 
           test(app).post('/')
-          .attach('file1', b)
-          .expect(200, done);
+            .attach('file1', b)
+            .expect(200, done);
         });
       });
     });
@@ -1236,7 +1246,8 @@ describe('koa-joi-router', () => {
                   '200': { body: Joi.any().equal('asdr') }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1252,7 +1263,8 @@ describe('koa-joi-router', () => {
                   '201,202': { body: Joi.any().equal('band-reject') }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1268,7 +1280,8 @@ describe('koa-joi-router', () => {
                   '400, 401': { body: Joi.any().equal('low-pass') }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1284,12 +1297,13 @@ describe('koa-joi-router', () => {
                   '402-404': { body: Joi.any().equal('hi-pass') }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
 
-        it('allows combinations of integers, commas and ranges', async () => {
+        it('allows combinations of integers, commas and ranges', async() => {
           const r = router();
 
           assert.doesNotThrow(() => {
@@ -1325,7 +1339,7 @@ describe('koa-joi-router', () => {
           await test(app).post('/combo/200').expect(200);
         });
 
-        it('allows the "*" to represent all status codes', async () => {
+        it('allows the "*" to represent all status codes', async() => {
           const r = router();
 
           assert.doesNotThrow(() => {
@@ -1378,7 +1392,8 @@ describe('koa-joi-router', () => {
                   method: 'get',
                   path: '/invalid',
                   validate: { output: output },
-                  handler: () => {}
+                  handler: () => {
+                  }
                 });
               });
 
@@ -1398,7 +1413,8 @@ describe('koa-joi-router', () => {
                   '%': { body: Joi.string() }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1516,7 +1532,8 @@ describe('koa-joi-router', () => {
                   '203-599': { body: Joi.any().equal('all') }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1532,7 +1549,8 @@ describe('koa-joi-router', () => {
               validate: {
                 output: { '200': {} }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1548,7 +1566,8 @@ describe('koa-joi-router', () => {
                   '200': { headers: { x: Joi.any() } }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1564,7 +1583,8 @@ describe('koa-joi-router', () => {
                   '200': { body: { x: Joi.any() } }
                 }
               },
-              handler: () => {}
+              handler: () => {
+              }
             });
           });
         });
@@ -1623,19 +1643,19 @@ describe('koa-joi-router', () => {
           const app = new Koa();
           app.use(r.middleware());
 
-          it('casts output values according to Joi rules', async () => {
+          it('casts output values according to Joi rules', async() => {
             // n should be cast to a number
             await test(app).post('/a/b').expect('{"n":3}').expect(200);
           });
 
           describe('but not included in response', () => {
-            it('responds with a 500', async () => {
+            it('responds with a 500', async() => {
               await test(app).post('/body/missing').expect(500);
             });
           });
 
           describe('when output is invalid', () => {
-            it('responds with a 500', async () => {
+            it('responds with a 500', async() => {
               await test(app).post('/body/invalid').expect(500);
             });
           });
@@ -1655,7 +1675,7 @@ describe('koa-joi-router', () => {
           const app = new Koa();
           app.use(r.middleware());
 
-          it('is not touched', async () => {
+          it('is not touched', async() => {
             const o = await test(app).post('/notouch').expect(200);
             assert.strictEqual(o.text, '{"n":"4"}');
           });
@@ -1723,18 +1743,18 @@ describe('koa-joi-router', () => {
           const app = new Koa();
           app.use(r.middleware());
 
-          it('casts output values according to Joi rules', async () => {
+          it('casts output values according to Joi rules', async() => {
             await test(app).post('/headers/cast').expect('n', '3').expect(200);
           });
 
           describe('but not included in response', () => {
-            it('responds with a 500', async () => {
+            it('responds with a 500', async() => {
               await test(app).post('/headers/missing').expect(500);
             });
           });
 
           describe('when output is invalid', () => {
-            it('responds with a 500', async () => {
+            it('responds with a 500', async() => {
               await test(app).post('/headers/invalid').expect(500);
             });
           });
@@ -1755,14 +1775,14 @@ describe('koa-joi-router', () => {
           const app = new Koa();
           app.use(r.middleware());
 
-          it('is not touched', async () => {
+          it('is not touched', async() => {
             const o = await test(app).post('/notouch').expect(200);
             assert.strictEqual(o.header.n, '3');
           });
         });
       });
 
-      it('does not occur when no status code matches', async () => {
+      it('does not occur when no status code matches', async() => {
         const r = router();
 
         r.route({
@@ -1807,8 +1827,8 @@ describe('koa-joi-router', () => {
             handler: [a, b],
             validate: {
               header:
-                Joi.object({ yum: Joi.string().token() })
-                  .options({ allowUnknown: true })
+                                Joi.object({ yum: Joi.string().token() })
+                                  .options({ allowUnknown: true })
             }
           });
 
@@ -1946,11 +1966,11 @@ describe('koa-joi-router', () => {
 
   describe('use()', () => {
     describe('applies middleware in the order it was added', () => {
-      it('can apply middleware before routes', async () => {
+      it('can apply middleware before routes', async() => {
         const r = router();
         let middlewareRanFirst = false;
 
-        r.use(async (ctx, next) => {
+        r.use(async(ctx, next) => {
           middlewareRanFirst = true;
           await next();
         });
@@ -1963,11 +1983,11 @@ describe('koa-joi-router', () => {
         app.use(r.middleware());
 
         await test(app).get('/test')
-        .expect('true')
-        .expect(200);
+          .expect('true')
+          .expect(200);
       });
 
-      it('can apply middleware after routes', async () => {
+      it('can apply middleware after routes', async() => {
         const r = router();
         let middlewareRanFirst = false;
 
@@ -1975,7 +1995,7 @@ describe('koa-joi-router', () => {
           ctx.body = String(middlewareRanFirst);
         });
 
-        r.use(async (ctx, next) => {
+        r.use(async(ctx, next) => {
           middlewareRanFirst = true;
           await next();
         });
@@ -1984,17 +2004,17 @@ describe('koa-joi-router', () => {
         app.use(r.middleware());
 
         await test(app).get('/test')
-        .expect('false')
-        .expect(200);
+          .expect('false')
+          .expect(200);
       });
     });
 
     describe('accepts an optional path', () => {
-      it('which applies middleware only to that path', async () => {
+      it('which applies middleware only to that path', async() => {
         const r = router();
         let middlewareRan = false;
 
-        r.use('/nada', async (ctx, next) => {
+        r.use('/nada', async(ctx, next) => {
           middlewareRan = true;
           await next();
         });
@@ -2010,24 +2030,24 @@ describe('koa-joi-router', () => {
         app.use(r.middleware());
 
         await test(app).get('/test')
-        .expect('false')
-        .expect(200);
+          .expect('false')
+          .expect(200);
 
         await test(app).get('/nada')
-        .expect('true')
-        .expect(200);
+          .expect('true')
+          .expect(200);
       });
     });
   });
 
   describe('prefix()', () => {
-    it('adds routes as children of the `path`', async () => {
+    it('adds routes as children of the `path`', async() => {
       const app = new Koa();
       app.context.msg = 'fail';
 
       const r = router();
 
-      r.use(async (ctx, next) => {
+      r.use(async(ctx, next) => {
         ctx.msg = 'works';
         await next();
       });
@@ -2051,37 +2071,37 @@ describe('koa-joi-router', () => {
       app.use(r.middleware());
 
       await test(app).get('/')
-      .expect(404);
+        .expect(404);
 
       await test(app).get('/user')
-      .expect('works')
-      .expect(200);
+        .expect('works')
+        .expect(200);
 
       await test(app).get('/user/')
-      .expect('works')
-      .expect(200);
+        .expect('works')
+        .expect(200);
 
       await test(app).get('/user/itworks')
-      .expect('itworks')
-      .expect(200);
+        .expect('itworks')
+        .expect(200);
 
       await test(app).get('/user/itworks/')
-      .expect('itworks')
-      .expect(200);
+        .expect('itworks')
+        .expect(200);
 
       await test(app).get('/user/testparam/dude')
-      .expect('itworksdude')
-      .expect(200);
+        .expect('itworksdude')
+        .expect(200);
     });
   });
 
   describe('param()', () => {
-    it('defines middleware for named route params', async () => {
+    it('defines middleware for named route params', async() => {
       const app = new Koa();
       const r = router();
       const users = { '2': 'aaron' };
 
-      r.param('user', async (id, ctx, next) => {
+      r.param('user', async(id, ctx, next) => {
         ctx.user = await Promise.resolve(users[id]);
 
         if (!ctx.user) {
@@ -2099,11 +2119,11 @@ describe('koa-joi-router', () => {
       app.use(r.middleware());
 
       await test(app).get('/user/1')
-      .expect(404);
+        .expect(404);
 
       await test(app).get('/user/2')
-      .expect('hello aaron')
-      .expect(200);
+        .expect('hello aaron')
+        .expect(200);
     });
 
   });

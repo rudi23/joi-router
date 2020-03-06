@@ -70,22 +70,24 @@ OutputValidationRule.prototype.validateOutput = function validateOutput(ctx) {
   let result;
 
   if (this.spec.headers) {
-    if (this.spec.headers.validate === undefined && typeof this.spec.headers === 'object') {
-      this.spec.headers = Joi.object(this.spec.headers);
+    let schema = this.spec.headers;
+    if (!Joi.isSchema(schema)) {
+      schema = Joi.object(schema);
     }
 
-    result = this.spec.headers.validate(ctx.response.headers);
+    result = schema.validate(ctx.response.headers);
     if (result.error) return result.error;
     // use casted values
     ctx.set(result.value);
   }
 
   if (this.spec.body) {
-    if (this.spec.body.validate === undefined && typeof this.spec.body === 'object') {
-      this.spec.body = Joi.object(this.spec.body);
+    let schema = this.spec.body;
+    if (!Joi.isSchema(schema)) {
+      schema = Joi.object(schema);
     }
 
-    result = this.spec.body.validate(ctx.body);
+    result = schema.validate(ctx.body);
     if (result.error) return result.error;
     // use casted values
     ctx.body = result.value;

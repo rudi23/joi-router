@@ -502,11 +502,12 @@ function validateInput(prop, ctx, validate, joiOptions) {
 
   const request = ctx.request;
 
-  if (validate[prop].validate === undefined && typeof validate[prop] === 'object') {
-    validate[prop] = Joi.object(validate[prop]);
+  let schema = validate[prop];
+  if (!Joi.isSchema(schema)) {
+    schema = Joi.object(schema);
   }
 
-  const res = validate[prop].validate(request[prop], joiOptions);
+  const res = schema.validate(request[prop], joiOptions);
 
   if (res.error) {
     res.error.status = validate.failure;
