@@ -46,11 +46,11 @@
     "sliced": "1.0.1"
   },
   "devDependencies": {
-    "eslint": "^6.7.2",
+    "eslint": "^6.8.0",
     "koa": "^2.11.0",
-    "mocha": "^6.2.2",
-    "nyc": "^14.0.0",
-    "supertest": "^4"
+    "mocha": "^7.1.0",
+    "nyc": "^15.0.0",
+    "supertest": "^4.0.2"
   },
   "eslintConfig": {
     "extends": [
