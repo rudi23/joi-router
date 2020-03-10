@@ -5,7 +5,7 @@ const debug = require('debug')('koa-joi-router');
 const isGenFn = require('is-gen-fn');
 const flatten = require('flatten');
 const methods = require('methods');
-const KoaRouter = require('koa-router');
+const KoaRouter = require('@koa/router');
 const busboy = require('await-busboy');
 const parse = require('co-body');
 const Joi = require('@hapi/joi');
@@ -31,6 +31,7 @@ function Router(opts) {
       typeof this.opts.errorResponseHandler === 'function') {
     this.errorResponseHandler = this.opts.errorResponseHandler;
   }
+  this.joiOptions = this.opts.joiOptions || { abortEarly: false };
 
   this.routes = [];
   this.router = new KoaRouter();
@@ -128,7 +129,7 @@ Router.prototype._addRoute = function addRoute(spec) {
 
   const bodyParser = makeBodyParser(spec);
   const specExposer = makeSpecExposer(spec);
-  const validator = makeValidator(spec, this.validateOutput);
+  const validator = makeValidator(spec, this.joiOptions, this.validateOutput);
   const preHandlers = spec.pre ? flatten(spec.pre) : [];
   const handlers = flatten(spec.handler);
 
@@ -189,7 +190,7 @@ function checkHandler(spec) {
 
 function checkPreHandler(spec) {
   if (!spec.pre) {
-    return
+    return;
   }
 
   if (!Array.isArray(spec.pre)) {
@@ -272,6 +273,112 @@ function checkValidators(spec) {
 }
 
 /**
+ * Does nothing
+ * @param  {[type]}   ctx  [description]
+ * @param  {Function} next [description]
+ * @return {async function}        [description]
+ * @api private
+ */
+
+async function noopMiddleware(ctx, next) {
+  return await next();
+}
+
+/**
+ * Handles parser internal errors
+ * @param  {Object} spec         [description]
+ * @param  {function} parsePayload [description]
+ * @return {async function}              [description]
+ * @api private
+ */
+
+function wrapError(spec, parsePayload) {
+  return async function errorHandler(ctx, next) {
+    try {
+      await parsePayload(ctx, next);
+    } catch (err) {
+      captureError(ctx, 'type', err);
+      if (spec.validate.continueOnError) {
+        return await next();
+      } else {
+        return ctx.throw(err);
+      }
+    }
+  };
+}
+
+/**
+ * Creates JSON body parser middleware.
+ *
+ * @param {Object} spec
+ * @return {async function}
+ * @api private
+ */
+
+function makeJSONBodyParser(spec) {
+  const opts = spec.validate.jsonOptions || {};
+  if (typeof opts.limit === 'undefined') {
+    opts.limit = spec.validate.maxBody;
+  }
+
+  return async function parseJSONPayload(ctx, next) {
+    if (!ctx.request.is('json')) {
+      return ctx.throw(400, 'expected json');
+    }
+
+    // eslint-disable-next-line require-atomic-updates
+    ctx.request.body = ctx.request.body || await parse.json(ctx, opts);
+    await next();
+  };
+}
+
+/**
+ * Creates form body parser middleware.
+ *
+ * @param {Object} spec
+ * @return {async function}
+ * @api private
+ */
+
+function makeFormBodyParser(spec) {
+  const opts = spec.validate.formOptions || {};
+  if (typeof opts.limit === 'undefined') {
+    opts.limit = spec.validate.maxBody;
+  }
+  return async function parseFormBody(ctx, next) {
+    if (!ctx.request.is('urlencoded')) {
+      return ctx.throw(400, 'expected x-www-form-urlencoded');
+    }
+
+    // eslint-disable-next-line require-atomic-updates
+    ctx.request.body = ctx.request.body || await parse.form(ctx, opts);
+    await next();
+  };
+}
+
+/**
+ * Creates stream/multipart-form body parser middleware.
+ *
+ * @param {Object} spec
+ * @return {async function}
+ * @api private
+ */
+
+function makeMultipartParser(spec) {
+  const opts = spec.validate.multipartOptions || {};
+  if (typeof opts.autoFields === 'undefined') {
+    opts.autoFields = true;
+  }
+  return async function parseMultipart(ctx, next) {
+    if (!ctx.request.is('multipart/*')) {
+      return ctx.throw(400, 'expected multipart');
+    }
+    ctx.request.parts = busboy(ctx, opts);
+    await next();
+  };
+}
+
+/**
  * Creates body parser middleware.
  *
  * @param {Object} spec
@@ -280,60 +387,19 @@ function checkValidators(spec) {
  */
 
 function makeBodyParser(spec) {
-  return async function parsePayload(ctx, next) {
-    if (!(spec.validate && spec.validate.type)) return await next();
+  if (!(spec.validate && spec.validate.type)) return noopMiddleware;
 
-    let opts;
-
-    try {
-      switch (spec.validate.type) {
-        case 'json':
-          if (!ctx.request.is('json')) {
-            return ctx.throw(400, 'expected json');
-          }
-
-          opts = spec.validate.jsonOptions || {};
-          if (typeof opts.limit === 'undefined') {
-            opts.limit = spec.validate.maxBody;
-          }
-
-          ctx.request.body = ctx.request.body || await parse.json(ctx, opts);
-          break;
-
-        case 'form':
-          if (!ctx.request.is('urlencoded')) {
-            return ctx.throw(400, 'expected x-www-form-urlencoded');
-          }
-
-          opts = spec.validate.formOptions || {};
-          if (typeof opts.limit === 'undefined') {
-            opts.limit = spec.validate.maxBody;
-          }
-
-          ctx.request.body = ctx.request.body || await parse.form(ctx, opts);
-          break;
-
-        case 'stream':
-        case 'multipart':
-          if (!ctx.request.is('multipart/*')) {
-            return ctx.throw(400, 'expected multipart');
-          }
-
-          opts = spec.validate.multipartOptions || {};
-          if (typeof opts.autoFields === 'undefined') {
-            opts.autoFields = true;
-          }
-
-          ctx.request.parts = busboy(ctx, opts);
-          break;
-      }
-    } catch (err) {
-      captureError(ctx, 'type', err);
-      if (!spec.validate.continueOnError) return ctx.throw(err);
-    }
-
-    await next();
-  };
+  switch (spec.validate.type) {
+    case 'json':
+      return wrapError(spec, makeJSONBodyParser(spec));
+    case 'form':
+      return wrapError(spec, makeFormBodyParser(spec));
+    case 'stream':
+    case 'multipart':
+      return wrapError(spec, makeMultipartParser(spec));
+    default:
+      throw new Error(`unsupported body type: ${spec.validate.type}`);
+  }
 }
 
 /**
@@ -351,12 +417,13 @@ function captureError(ctx, type, err) {
  * Creates validator middleware.
  *
  * @param {Object} spec
+ * @param {Object} joiOptions
  * @param {boolean} validateOutput
  * @return {async function}
  * @api private
  */
 
-function makeValidator(spec, validateOutput) {
+function makeValidator(spec, joiOptions, validateOutput) {
   const props = 'header query params body'.split(' ');
 
   return async function validator(ctx, next) {
@@ -368,7 +435,7 @@ function makeValidator(spec, validateOutput) {
       const prop = props[i];
 
       if (spec.validate[prop]) {
-        err = validateInput(prop, ctx, spec.validate);
+        err = validateInput(prop, ctx, spec.validate, joiOptions);
 
         if (err) {
           captureError(ctx, prop, err);
@@ -395,10 +462,9 @@ function makeValidator(spec, validateOutput) {
 }
 
 /**
- * Exposes route spec.
- *
- * @param {Object} spec
- * @return {async function}
+ * Exposes route spec
+ * @param {Object} spec The route spec
+ * @returns {async Function} Middleware
  * @api private
  */
 function makeSpecExposer(spec) {
@@ -426,11 +492,12 @@ async function prepareRequest(ctx, next) {
  * @param {String} prop
  * @param {koa.Request} request
  * @param {Object} validate
+ * @param {Object} joiOptions
  * @returns {Error|undefined}
  * @api private
  */
 
-function validateInput(prop, ctx, validate) {
+function validateInput(prop, ctx, validate, joiOptions) {
   debug('validating %s', prop);
 
   const request = ctx.request;
@@ -440,7 +507,7 @@ function validateInput(prop, ctx, validate) {
     schema = Joi.object(schema);
   }
 
-  const res = schema.validate(request[prop]);
+  const res = schema.validate(request[prop], joiOptions);
 
   if (res.error) {
     res.error.status = validate.failure;
